@@ -9,5 +9,4 @@ public class FeedbackServerApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(FeedbackServerApplication.class, args);
 	}
-
 }

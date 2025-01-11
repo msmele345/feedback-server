@@ -14,5 +14,5 @@ public class FeedbackRequest {
     private String feedbackId;
     private String content;
     private String email;
-    private String timestamp;
+    private String submissionTime;
 }

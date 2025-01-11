@@ -1,38 +1,45 @@
 package com.mitchmele.feedback_server.service;
 
-import com.azure.storage.blob.BlobClient;
-import com.azure.storage.blob.BlobContainerClient;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mitchmele.feedback_server.model.FeedbackRequest;
+import com.mitchmele.feedback_server.model.ServiceResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.UUID;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FeedbackService {
 
-    private final BlobContainerClient blobContainerClient;
+    private final UuidGenerator uuidGenerator;
+    private final RestTemplate feedbackRestTemplate;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
-    //publish to queue?
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    //publish to new topic for feedback?
     //call http function
 
-    public void uploadFeedBack(FeedbackRequest feedback) {
-        feedback.setFeedbackId(UUID.randomUUID().toString());
-        BlobClient blobClient = blobContainerClient.getBlobClient("user_feedback:" + feedback.getTimestamp());
+    public ResponseEntity<ServiceResponse> uploadFeedBack(FeedbackRequest feedbackRequest) {
+        final ServiceResponse response = new ServiceResponse();
+        feedbackRequest.setFeedbackId(uuidGenerator.generateStringUuid());
+
         try {
-            InputStream inputStream = new ByteArrayInputStream(objectMapper.writeValueAsBytes(feedback));
-            blobClient.upload(inputStream);
-        } catch (JsonProcessingException e) {
-            log.info("Error while uploading feedback: {}", e.getMessage());
-            throw new RuntimeException(e);
+            feedbackRestTemplate
+                    .postForEntity("http://localhost:51353/api/postFeedback", feedbackRequest, Void.class);
+
+            response.setStatus("Success");
+
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            log.info("Error while uploading feedbackRequest: {}", e.getMessage());
+
+            response.setHasError(true);
+            response.setStatus("Upload failed. Error: " + e.getLocalizedMessage());
+
+            return ResponseEntity.internalServerError().body(response);
         }
     }
 }
