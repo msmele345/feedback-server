@@ -29,9 +29,10 @@ ext {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'com.azure.spring:spring-cloud-azure-starter-data-cosmos'
+//	implementation 'com.azure.spring:spring-cloud-azure-starter-data-cosmos'
 	implementation 'com.azure.spring:spring-cloud-azure-starter-keyvault'
 	implementation 'com.azure.spring:spring-cloud-azure-starter-storage'
+	implementation 'com.azure.spring:spring-cloud-azure-starter-servicebus:5.17.0'
 
 	implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.1'
 

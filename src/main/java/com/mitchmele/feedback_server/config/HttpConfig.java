@@ -35,8 +35,6 @@ public class HttpConfig {
 
     @Bean
     public CloseableHttpClient httpClient() {
-        return HttpClientBuilder
-                        .create()
-                        .build();
+        return HttpClientBuilder.create().build();
     }
 }

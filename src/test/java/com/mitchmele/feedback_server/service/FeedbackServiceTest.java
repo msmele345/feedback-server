@@ -1,5 +1,8 @@
 package com.mitchmele.feedback_server.service;
 
+import com.azure.messaging.servicebus.ServiceBusMessage;
+import com.azure.messaging.servicebus.ServiceBusSenderClient;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mitchmele.feedback_server.model.FeedbackRequest;
 import com.mitchmele.feedback_server.model.ServiceResponse;
@@ -19,8 +22,7 @@ import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class FeedbackServiceTest {
@@ -29,7 +31,13 @@ class FeedbackServiceTest {
     private RestTemplate feedbackRestTemplate;
 
     @Mock
-    private UuidGenerator mockUuidGenerator;;
+    private UuidGenerator mockUuidGenerator;
+
+    @Mock
+    private ObjectMapper mockObjectMapper;
+
+    @Mock
+    private ServiceBusSenderClient mockSenderClient;
 
     @InjectMocks
     private FeedbackService feedbackService;
@@ -51,38 +59,46 @@ class FeedbackServiceTest {
     }
 
     @Test
-    void uploadFeedback_usesContainerClientToUploadJson() {
+    void postFeedback_usesContainerClientToUploadJson() throws JsonProcessingException {
         ServiceResponse expectedResponse = ServiceResponse.builder()
-                .hasError(false)
-                .status("Success")
+                .isSuccess(true)
+                .message("Processed Feedback Successfully")
                 .build();
 
         when(feedbackRestTemplate.postForEntity(anyString(), any(), eq(Void.class)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
-        ResponseEntity<ServiceResponse> actual = feedbackService.uploadFeedBack(feedbackRequest);
+        doNothing().when(mockSenderClient).sendMessage(any(ServiceBusMessage.class));
+
+        when(mockObjectMapper.writeValueAsString(any(FeedbackRequest.class))).thenReturn("someJson");
+
+        ResponseEntity<ServiceResponse> actual = feedbackService.saveFeedback(feedbackRequest);
 
         verify(mockUuidGenerator).generateStringUuid();
+        verify(mockSenderClient).sendMessage(any(ServiceBusMessage.class));
         verify(feedbackRestTemplate).postForEntity(anyString(), any(), eq(Void.class));
-
 
         assertThat(actual.getBody()).isEqualTo(expectedResponse);
         assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
     @Test
-    void uploadFeedback_returnsServiceResponseWithError_whenBlobContainerClientThrowsException() {
+    void postFeedback_returnsServiceResponseWithError_processingThrowsException() throws JsonProcessingException {
         RestClientResponseException ex =
                 new RestClientResponseException("someerror", HttpStatusCode.valueOf(500), "500", null, null, null);
 
         when(feedbackRestTemplate.postForEntity(anyString(), any(), eq(Void.class)))
                 .thenThrow(ex);
 
-        ResponseEntity<ServiceResponse> actual = feedbackService.uploadFeedBack(feedbackRequest);
+        doNothing().when(mockSenderClient).sendMessage(any(ServiceBusMessage.class));
+
+        when(mockObjectMapper.writeValueAsString(any(FeedbackRequest.class))).thenReturn("someJson");
+
+        ResponseEntity<ServiceResponse> actual = feedbackService.saveFeedback(feedbackRequest);
 
         ServiceResponse expectedResponse = ServiceResponse.builder()
-                .hasError(true)
-                .status("Upload failed. Error: someerror")
+                .isSuccess(false)
+                .message("Feedback Processing Failed. Error: someerror")
                 .build();
 
         assertThat(actual.getBody()).isEqualTo(expectedResponse);

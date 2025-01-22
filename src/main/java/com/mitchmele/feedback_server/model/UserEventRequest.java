@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ServiceResponse {
+public class UserEventRequest {
 
-    private String message;
-    private boolean isSuccess;
+    private String id;
+    private String eventType;
+    private String imageName;
+    private String timestamp;
 }

@@ -58,7 +58,7 @@ class FeedbackControllerTest {
                 HttpStatus.CREATED
         );
 
-        Mockito.when(feedbackService.uploadFeedBack(any(FeedbackRequest.class)))
+        Mockito.when(feedbackService.saveFeedback(any(FeedbackRequest.class)))
                 .thenReturn(expectedResponse);
 
         mockMvc.perform(post("/api/v2/feedback")
@@ -67,6 +67,6 @@ class FeedbackControllerTest {
                 )
                 .andExpect(status().isCreated());
 
-        Mockito.verify(feedbackService).uploadFeedBack(request);
+        Mockito.verify(feedbackService).saveFeedback(request);
     }
 }
