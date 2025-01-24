@@ -18,4 +18,4 @@ messaging:
     connection-string: ${servicebusconnection}
 
 server:
-  port: 8092
+  port: 8080

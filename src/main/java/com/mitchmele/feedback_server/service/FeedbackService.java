@@ -22,7 +22,8 @@ public class FeedbackService {
     private final RestTemplate feedbackRestTemplate;
     private final ServiceBusSenderClient screensServiceBusSenderClient;
 
-    //publish to errors to new topic?
+    //publish function app
+    //deploy screens to container services
     //call http function for onSuccess processing via azure function
 
     public ResponseEntity<ServiceResponse> saveFeedback(FeedbackRequest feedbackRequest) {
@@ -34,8 +35,8 @@ public class FeedbackService {
             //move to new its own component.
             screensServiceBusSenderClient.sendMessage(new ServiceBusMessage(queueMsg));
 
-            feedbackRestTemplate
-                    .postForEntity("http://localhost:51353/api/postFeedback", feedbackRequest, Void.class);
+//            feedbackRestTemplate
+//                    .postForEntity("http://localhost:51353/api/postFeedback", feedbackRequest, Void.class);
 
             response.setMessage("Processed Feedback Successfully");
             response.setSuccess(true);

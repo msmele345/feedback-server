@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "com.microsoft.azure.azurewebapp" version "1.1.0"
 }
 
 group = 'com.mitchmele'
@@ -10,6 +11,19 @@ version = '0.0.1-SNAPSHOT'
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+//use ./gradlew azureWebAppDeploy
+azurewebapp {
+//	subscription = '<your subscription id>'
+	resourceGroup = 'devappservice'
+	appName = 'feedback-server'
+	pricingTier = 'S1'
+	region = 'westus'
+	runtime {
+		os = 'Linux'
+		webContainer = 'Java SE'
+		javaVersion = 'Java 17'
 	}
 }
 
