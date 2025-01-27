@@ -3,6 +3,7 @@ package com.mitchmele.feedback_server.service;
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mitchmele.feedback_server.model.CorrelationFilter;
 import com.mitchmele.feedback_server.model.FeedbackRequest;
 import com.mitchmele.feedback_server.model.ServiceResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,33 +23,44 @@ public class FeedbackService {
     private final RestTemplate feedbackRestTemplate;
     private final ServiceBusSenderClient screensServiceBusSenderClient;
 
+    //TODO create app new listener app that saves to cosmos. Or a new function that outputs to cosmos
     //publish function app
     //deploy screens to container services
-    //call http function for onSuccess processing via azure function
+    //add managed identity for container app
+    //allow the identity on the webapp
 
     public ResponseEntity<ServiceResponse> saveFeedback(FeedbackRequest feedbackRequest) {
-        final ServiceResponse response = new ServiceResponse();
         feedbackRequest.setFeedbackId(uuidGenerator.generateStringUuid());
 
         try {
-            String queueMsg = objectMapper.writeValueAsString(feedbackRequest);
-            //move to new its own component.
-            screensServiceBusSenderClient.sendMessage(new ServiceBusMessage(queueMsg));
+            final String queueMsg = objectMapper.writeValueAsString(feedbackRequest);
+            //move to new its own component. Feedback publisher?
+            final ServiceBusMessage message = createServiceBusMessage(queueMsg);
 
+            screensServiceBusSenderClient.sendMessage(message);
 //            feedbackRestTemplate
 //                    .postForEntity("http://localhost:51353/api/postFeedback", feedbackRequest, Void.class);
 
-            response.setMessage("Processed Feedback Successfully");
-            response.setSuccess(true);
+            log.info("Feedback Message Sent to Topic Successfully: {}", queueMsg);
 
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            return new ResponseEntity<>(createResponse(true), HttpStatus.CREATED);
         } catch (Exception e) {
             log.info("Error while uploading feedbackRequest: {}", e.getMessage());
-            //fire message to service topic
-            response.setSuccess(false);
-            response.setMessage("Feedback Processing Failed. Error: " + e.getLocalizedMessage());
 
-            return ResponseEntity.internalServerError().body(response);
+            return ResponseEntity.internalServerError().body(createResponse(false));
         }
+    }
+
+    private static ServiceBusMessage createServiceBusMessage(String queueMsg) {
+        final ServiceBusMessage message = new ServiceBusMessage(queueMsg);
+        message.setCorrelationId(CorrelationFilter.FEEDBACK.toString());
+        return message;
+    }
+
+    private static ServiceResponse createResponse(boolean isSuccess) {
+       ServiceResponse res = new ServiceResponse();
+        res.setSuccess(isSuccess);
+        res.setMessage(isSuccess ? "Processed Feedback Successfully" : "Feedback Processing Failed");
+        return res;
     }
 }
