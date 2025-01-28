@@ -2,14 +2,11 @@ package com.mitchmele.feedback_server.controller;
 
 import com.mitchmele.feedback_server.model.ServiceResponse;
 import com.mitchmele.feedback_server.model.UserEventRequest;
-import com.mitchmele.feedback_server.service.MessagingService;
+import com.mitchmele.feedback_server.service.UserEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -17,13 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserEventController {
 
-    //publish to new topic
-    //setup bus trigger function or http function that outputs to cosmos db.
-    private final MessagingService messagingService;
+    private final UserEventService userEventService;
 
     @PostMapping("/status")
     public ResponseEntity<ServiceResponse> publishMessage(@RequestBody UserEventRequest request) {
-        final ServiceResponse serviceResponse = messagingService.sendMessageToTopic(request);
+        final ServiceResponse serviceResponse = userEventService.sendMessageToTopic(request);
         return ResponseEntity.ok(serviceResponse);
     }
 }

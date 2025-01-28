@@ -3,6 +3,7 @@ package com.mitchmele.feedback_server.service;
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mitchmele.feedback_server.model.CorrelationFilter;
 import com.mitchmele.feedback_server.model.ServiceResponse;
 import com.mitchmele.feedback_server.model.UserEventRequest;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class MessagingService {
+public class UserEventService {
 
     private final ObjectMapper objectMapper;
     private final ServiceBusSenderClient screensServiceBusSenderClient;
@@ -22,6 +23,7 @@ public class MessagingService {
             msgContent = objectMapper.writeValueAsString(userEventRequest);
 
             ServiceBusMessage msg = new ServiceBusMessage(msgContent);
+            msg.setCorrelationId(CorrelationFilter.USER_EVENT.toString());
 
             screensServiceBusSenderClient.sendMessage(msg);
 

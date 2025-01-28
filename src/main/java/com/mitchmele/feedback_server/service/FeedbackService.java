@@ -23,7 +23,6 @@ public class FeedbackService {
     private final RestTemplate feedbackRestTemplate;
     private final ServiceBusSenderClient screensServiceBusSenderClient;
 
-    //TODO create app new listener app that saves to cosmos. Or a new function that outputs to cosmos
     //publish function app
     //deploy screens to container services
     //add managed identity for container app

@@ -4,6 +4,7 @@ import com.azure.messaging.servicebus.ServiceBusMessage;
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mitchmele.feedback_server.model.CorrelationFilter;
 import com.mitchmele.feedback_server.model.UserEventRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MessagingServiceTest {
+class UserEventServiceTest {
 
     @Mock
     private ServiceBusSenderClient mockSenderClient;
@@ -28,7 +29,7 @@ class MessagingServiceTest {
     private ObjectMapper objectMapper;
 
     @InjectMocks
-    private MessagingService messagingService;
+    private UserEventService userEventService;
 
 
     @Test
@@ -45,16 +46,16 @@ class MessagingServiceTest {
                 .build();
 
         String expectedMessageBody = "mockEventJson";
-        ServiceBusMessage expectedMsg = new ServiceBusMessage(expectedMessageBody);
 
         when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(expectedMessageBody);
 
-        messagingService.sendMessageToTopic(userEventRequest);
+        userEventService.sendMessageToTopic(userEventRequest);
 
         ArgumentCaptor<ServiceBusMessage> captor = ArgumentCaptor.forClass(ServiceBusMessage.class);
 
         Mockito.verify(mockSenderClient).sendMessage(captor.capture());
 
         assertThat(captor.getValue().getBody().toString()).isEqualTo(expectedMessageBody);
+        assertThat(captor.getValue().getCorrelationId()).isEqualTo(CorrelationFilter.USER_EVENT.toString());
     }
 }
