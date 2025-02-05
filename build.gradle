@@ -18,13 +18,16 @@ azurewebapp {
 //	subscription = '<your subscription id>'
 	resourceGroup = 'devappservice'
 	appName = 'feedback-server'
-	pricingTier = 'S1'
+	pricingTier = 'B1'
 	region = 'westus'
 	runtime {
 		os = 'Linux'
 		webContainer = 'Java SE'
 		javaVersion = 'Java 17'
 	}
+//	appSettings {
+//		server.port = '80'
+//	}
 }
 
 configurations {
@@ -53,7 +56,11 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
+
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -64,5 +71,13 @@ dependencyManagement {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		excludeTags 'integrationTest'
+	}
+}
+
+tasks.register("integrationTest", Test) {
+	useJUnitPlatform {
+		includeTags("IT")
+	}
 }

@@ -13,6 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+//publish function app
+//deploy screens to container services
+//add managed identity for container app
+//allow the identity on the webapp
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -23,17 +28,11 @@ public class FeedbackService {
     private final RestTemplate feedbackRestTemplate;
     private final ServiceBusSenderClient screensServiceBusSenderClient;
 
-    //publish function app
-    //deploy screens to container services
-    //add managed identity for container app
-    //allow the identity on the webapp
-
     public ResponseEntity<ServiceResponse> saveFeedback(FeedbackRequest feedbackRequest) {
         feedbackRequest.setFeedbackId(uuidGenerator.generateStringUuid());
 
         try {
             final String queueMsg = objectMapper.writeValueAsString(feedbackRequest);
-            //move to new its own component. Feedback publisher?
             final ServiceBusMessage message = createServiceBusMessage(queueMsg);
 
             screensServiceBusSenderClient.sendMessage(message);
