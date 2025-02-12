@@ -8,11 +8,11 @@ import com.mitchmele.feedback_server.model.ServiceResponse;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,6 +68,11 @@ class FeedbackIntegrationTest {
         assertThat(sentMessage.getContent()).isEqualTo(request.getContent());
         assertThat(sentMessage.getEmail()).isEqualTo(request.getEmail());
         assertThat(sentMessage.getSubmissionTime()).isEqualTo(request.getSubmissionTime());
+
+        assertThat(actualRes.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(actualRes.getBody()).isNotNull();
+        assertThat(actualRes.getBody().getMessage()).isEqualTo("Processed Feedback Successfully");
+
     }
 
     private String createUrlWithPath(String path) {
